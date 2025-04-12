@@ -155,21 +155,13 @@
         <div class="color-picker">
             <label for="couleurTheme">Couleur du thème :</label>
             <input type="color" id="couleurTheme" value="#ebf8ff">
-             
-          
-          
         </div>
-            
-          
           <div>
-            
-            
                <!-- Ajoutez ce bouton après le champ tauxImpot -->
 <center><button type="button" onclick="calculerTauxImpot()" style="margin-top: 7px; width: 200px;  width: 70%;">
  Calculer taux d'imposition
 </button>
 <small id="helpImpot" style="display:block; margin-top:6px; color:#666;"></small>
-
 <script>
 // Tranches d'imposition 2023 (à mettre à jour pour 2025)
 const TRANCHES_IMPOT = [
@@ -179,14 +171,11 @@ const TRANCHES_IMPOT = [
     { min: 78571, max: 168994, taux: 41 },
     { min: 168995, max: Infinity, taux: 45 }
 ];
-
 function calculerTauxImpot() {
     const brutAnnuel = parseFloat(document.getElementById('salaireBrut').value) * 12;
     const nbParts = getNbParts(); // Calcul des parts fiscales
-    
     let taux = 0;
     let revenuImposable = brutAnnuel * 0.9 / nbParts; // Estimation revenu imposable
-    
     // Calcul selon les tranches
     for(let i = 0; i < TRANCHES_IMPOT.length; i++) {
         if(revenuImposable > TRANCHES_IMPOT[i].min) {
@@ -195,38 +184,26 @@ function calculerTauxImpot() {
             taux += montantTranche * TRANCHES_IMPOT[i].taux / 100;
         }
     }
-    
     const tauxMoyen = (taux * nbParts / brutAnnuel) * 100;
     document.getElementById('tauxImpot').value = tauxMoyen.toFixed(2);
     document.getElementById('helpImpot').innerHTML = `Estimé sur un brut annuel de ${brutAnnuel.toFixed(2)}€ (${nbParts} part${nbParts > 1 ? 's' : ''})`;
-    
     // Mise à jour du net à payer
     document.getElementById('apercuNetAPayer').textContent = `Net à payer : ${(document.getElementById('salaireBrut').value * (1 - tauxMoyen/100)).toFixed(2)} €`;
 }
-
 function getNbParts() {
     const statut = parseInt(document.getElementById('statutMarital').value);
     const enfants = parseInt(document.getElementById('nbEnfants').value);
-    
     // Calcul des parts fiscales (simplifié)
     let parts = 1;
     if(statut === 2) parts = 2; // Marié
     if(enfants > 0) parts += enfants * 0.5;
-    
     return Math.max(1, parts);
 }
-
 // Mise à jour auto quand on change les paramètres
 document.getElementById('statutMarital').addEventListener('change', calculerTauxImpot);
 document.getElementById('nbEnfants').addEventListener('change', calculerTauxImpot);
 </script>
-
-          
   </div>
-          
-          
-          
-       
         <button onclick="genererPDF()">Générer la fiche de paie</button>
         <div class="apercu-net" id="apercuNetAPayer">Net à payer : 0.00 €</div>
         <button id="toggleDarkMode">Activer/Désactiver Mode Sombre</button>
@@ -237,81 +214,6 @@ document.getElementById('nbEnfants').addEventListener('change', calculerTauxImpo
     <script>
         window.onload = function () {
             const { jsPDF } = window.jspdf;
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-                  // Tranches d'imposition 2023 (à mettre à jour pour 2025)
-        const TRANCHES_IMPOT = [
-            { min: 0, max: 10777, taux: 0 },
-            { min: 10778, max: 27478, taux: 11 },
-            { min: 27479, max: 78570, taux: 30 },
-            { min: 78571, max: 168994, taux: 41 },
-            { min: 168995, max: Infinity, taux: 45 }
-        ];
-
-        function getNbParts() {
-            const statut = parseInt(document.getElementById('statutMarital').value);
-            const enfants = parseInt(document.getElementById('nbEnfants').value);
-            
-            let parts = statut === 2 ? 2 : 1;
-            if(enfants > 0) {
-                parts += enfants > 2 ? (enfants - 1) : enfants * 0.5;
-            }
-            return Math.max(1, parts);
-        }
-
-        function calculerTauxImpot() {
-            try {
-                const brutValue = document.getElementById('salaireBrut').value;
-                if(!brutValue || isNaN(brutValue)) throw new Error("Salaire brut invalide");
-                
-                const brutAnnuel = parseFloat(brutValue) * 12;
-                const nbParts = getNbParts();
-                let taux = 0;
-                const revenuImposable = brutAnnuel * 0.9 / nbParts;
-
-                for(let i = 0; i < TRANCHES_IMPOT.length; i++) {
-                    if(revenuImposable > TRANCHES_IMPOT[i].min) {
-                        const maxTranche = Math.min(revenuImposable, TRANCHES_IMPOT[i].max);
-                        const montantTranche = maxTranche - TRANCHES_IMPOT[i].min;
-                        taux += montantTranche * TRANCHES_IMPOT[i].taux / 100;
-                    }
-                }
-
-                const tauxMoyen = (taux * nbParts / brutAnnuel) * 100;
-                document.getElementById('tauxImpot').value = tauxMoyen.toFixed(2);
-                document.getElementById('helpImpot').innerHTML = `
-                    Estimation basée sur :<br>
-                    - Brut annuel : ${brutAnnuel.toFixed(2)}€<br>
-                    - Parts fiscales : ${nbParts}<br>
-                    - Taux moyen : ${tauxMoyen.toFixed(2)}%<br>
-                    <em style="color:#666;">Valeur indicative - non contractuelle</em>`;
-
-                document.getElementById('apercuNetAPayer').textContent = 
-                    `Net à payer : ${(brutValue * (1 - tauxMoyen/100)).toFixed(2)} €`;
-
-            } catch(error) {
-                console.error("Erreur de calcul :", error);
-                document.getElementById('helpImpot').innerHTML = 
-                    `<span style="color:red">Erreur : ${error.message}</span>`;
-            }
-        }
-
-        // Événements de mise à jour automatique
-        ['input', 'change'].forEach(evt => {
-            document.getElementById('salaireBrut').addEventListener(evt, calculerTauxImpot);
-            document.getElementById('statutMarital').addEventListener(evt, calculerTauxImpot);
-            document.getElementById('nbEnfants').addEventListener(evt, calculerTauxImpot);
-        });
-          
-          
 
             // Constantes SMIC 2025
             const SMIC_HORAIRE_BRUT = 11.88;
@@ -374,10 +276,10 @@ document.getElementById('nbEnfants').addEventListener('change', calculerTauxImpo
                 const emailEntreprise = document.getElementById("emailEntreprise").value;
                 const nomSalarie = document.getElementById("nomSalarie").value;
                 const adresseSalarie = document.getElementById("adresseSalarie").value;
-const emailSalarie = document.getElementById("emailSalarie").value;
-const telSalarie = document.getElementById("telSalarie").value;
-const secuSalarie = document.getElementById("secuSalarie").value.replace(/\s/g, "");
-          const dateEntree = document.getElementById("dateEntree").value;
+                const emailSalarie = document.getElementById("emailSalarie").value;
+                const telSalarie = document.getElementById("telSalarie").value;
+                const secuSalarie = document.getElementById("secuSalarie").value.replace(/\s/g, "");
+                const dateEntree = document.getElementById("dateEntree").value;
                 const posteOccupe = document.getElementById("posteOccupe").value;
                 const dateDebut = document.getElementById("dateDebut").value;
                 const dateFin = document.getElementById("dateFin").value;
@@ -646,6 +548,19 @@ const secuSalarie = document.getElementById("secuSalarie").value.replace(/\s/g, 
                 return basePlafonnee * taux;
             }
 
+            // Calcul automatique du salaire brut
+            function updateSalaireBrut() {
+                const tauxHoraire = parseFloat(document.getElementById("tauxHoraire").value) || 0;
+                const heuresMensuelles = parseFloat(document.getElementById("heuresMensuelles").value) || 0;
+                const salaireBrut = tauxHoraire * heuresMensuelles;
+                document.getElementById("salaireBrut").value = salaireBrut.toFixed(2);
+                calculerTauxImpot();
+            }
+
+            // Événements pour le calcul automatique du salaire brut
+            document.getElementById("tauxHoraire").addEventListener("input", updateSalaireBrut);
+            document.getElementById("heuresMensuelles").addEventListener("input", updateSalaireBrut);
+
             // Calcul en temps réel du net à payer
             document.getElementById("salaireBrut").addEventListener("input", function () {
                 const salaireBrut = parseFloat(this.value) || 0;
@@ -660,7 +575,5 @@ const secuSalarie = document.getElementById("secuSalarie").value.replace(/\s/g, 
             });
         };
     </script>
-
-      
 </body>
 </html>
