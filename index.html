@@ -158,13 +158,15 @@
              
           
           
-        </div>            
+        </div>
+            
           
           <div>
-                        
+            
+            
                <!-- Ajoutez ce bouton après le champ tauxImpot -->
 <center><button type="button" onclick="calculerTauxImpot()" style="margin-top: 7px; width: 200px;  width: 70%;">
-    Calculer taux d'imposition
+ Calculer taux d'imposition
 </button>
 <small id="helpImpot" style="display:block; margin-top:6px; color:#666;"></small>
 
@@ -221,7 +223,10 @@ document.getElementById('nbEnfants').addEventListener('change', calculerTauxImpo
 
           
   </div>
-             
+          
+          
+          
+       
         <button onclick="genererPDF()">Générer la fiche de paie</button>
         <div class="apercu-net" id="apercuNetAPayer">Net à payer : 0.00 €</div>
         <button id="toggleDarkMode">Activer/Désactiver Mode Sombre</button>
@@ -232,6 +237,81 @@ document.getElementById('nbEnfants').addEventListener('change', calculerTauxImpo
     <script>
         window.onload = function () {
             const { jsPDF } = window.jspdf;
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+                  // Tranches d'imposition 2023 (à mettre à jour pour 2025)
+        const TRANCHES_IMPOT = [
+            { min: 0, max: 10777, taux: 0 },
+            { min: 10778, max: 27478, taux: 11 },
+            { min: 27479, max: 78570, taux: 30 },
+            { min: 78571, max: 168994, taux: 41 },
+            { min: 168995, max: Infinity, taux: 45 }
+        ];
+
+        function getNbParts() {
+            const statut = parseInt(document.getElementById('statutMarital').value);
+            const enfants = parseInt(document.getElementById('nbEnfants').value);
+            
+            let parts = statut === 2 ? 2 : 1;
+            if(enfants > 0) {
+                parts += enfants > 2 ? (enfants - 1) : enfants * 0.5;
+            }
+            return Math.max(1, parts);
+        }
+
+        function calculerTauxImpot() {
+            try {
+                const brutValue = document.getElementById('salaireBrut').value;
+                if(!brutValue || isNaN(brutValue)) throw new Error("Salaire brut invalide");
+                
+                const brutAnnuel = parseFloat(brutValue) * 12;
+                const nbParts = getNbParts();
+                let taux = 0;
+                const revenuImposable = brutAnnuel * 0.9 / nbParts;
+
+                for(let i = 0; i < TRANCHES_IMPOT.length; i++) {
+                    if(revenuImposable > TRANCHES_IMPOT[i].min) {
+                        const maxTranche = Math.min(revenuImposable, TRANCHES_IMPOT[i].max);
+                        const montantTranche = maxTranche - TRANCHES_IMPOT[i].min;
+                        taux += montantTranche * TRANCHES_IMPOT[i].taux / 100;
+                    }
+                }
+
+                const tauxMoyen = (taux * nbParts / brutAnnuel) * 100;
+                document.getElementById('tauxImpot').value = tauxMoyen.toFixed(2);
+                document.getElementById('helpImpot').innerHTML = `
+                    Estimation basée sur :<br>
+                    - Brut annuel : ${brutAnnuel.toFixed(2)}€<br>
+                    - Parts fiscales : ${nbParts}<br>
+                    - Taux moyen : ${tauxMoyen.toFixed(2)}%<br>
+                    <em style="color:#666;">Valeur indicative - non contractuelle</em>`;
+
+                document.getElementById('apercuNetAPayer').textContent = 
+                    `Net à payer : ${(brutValue * (1 - tauxMoyen/100)).toFixed(2)} €`;
+
+            } catch(error) {
+                console.error("Erreur de calcul :", error);
+                document.getElementById('helpImpot').innerHTML = 
+                    `<span style="color:red">Erreur : ${error.message}</span>`;
+            }
+        }
+
+        // Événements de mise à jour automatique
+        ['input', 'change'].forEach(evt => {
+            document.getElementById('salaireBrut').addEventListener(evt, calculerTauxImpot);
+            document.getElementById('statutMarital').addEventListener(evt, calculerTauxImpot);
+            document.getElementById('nbEnfants').addEventListener(evt, calculerTauxImpot);
+        });
+          
+          
 
             // Constantes SMIC 2025
             const SMIC_HORAIRE_BRUT = 11.88;
@@ -580,9 +660,7 @@ const secuSalarie = document.getElementById("secuSalarie").value.replace(/\s/g, 
             });
         };
     </script>
-      
 
-      
       
 </body>
 </html>
