@@ -163,13 +163,14 @@
 </button>
 <small id="helpImpot" style="display:block; margin-top:6px; color:#666;"></small>
 <script>
-// Tranches d'imposition 2023 (à mettre à jour pour 2025)
+// Tranches d'imposition 2025
 const TRANCHES_IMPOT = [
-    { min: 0, max: 10777, taux: 0 },
-    { min: 10778, max: 27478, taux: 11 },
-    { min: 27479, max: 78570, taux: 30 },
-    { min: 78571, max: 168994, taux: 41 },
-    { min: 168995, max: Infinity, taux: 45 }
+    { min: 0, max: 11294, taux: 0 },
+    { min: 11295, max: 28797, taux: 11 },
+    { min: 28798, max: 82341, taux: 30 },
+    { min: 82342, max: 177106, taux: 41 },
+    { min: 177107, max: Infinity, taux: 45 }
+
 ];
 function calculerTauxImpot() {
     const brutAnnuel = parseFloat(document.getElementById('salaireBrut').value) * 12;
