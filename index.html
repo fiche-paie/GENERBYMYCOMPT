@@ -163,28 +163,28 @@
 </button>
 <small id="helpImpot" style="display:block; margin-top:6px; color:#666;"></small>
 <script>
-chargerTranchesImpot(); // Initialisation au démarrage
+// Tranches d'imposition 2025
+const TRANCHES_IMPOT = [
+    { min: 0, max: 11294, taux: 0 },
+    { min: 11295, max: 28797, taux: 11 },
+    { min: 28798, max: 82341, taux: 30 },
+    { min: 82342, max: 177106, taux: 41 },
+    { min: 177107, max: Infinity, taux: 45 }
 
-    
-let TRANCHES_IMPOT = [];
-
-async function chargerTranchesImpot() {
-    try {
-        const response = await fetch("https://fiche-paie.github.io/tranches_impot_2025.json");
-        const data = await response.json();
-        TRANCHES_IMPOT = data.map(t => ({
-            min: t.min,
-            max: t.max ?? Infinity,
-            taux: t.taux
-        }));
-    } catch (error) {
-        console.error("Erreur de chargement des tranches :", error);
-        alert("Impossible de charger les tranches d'imposition.");
+];
+function calculerTauxImpot() {
+    const brutAnnuel = parseFloat(document.getElementById('salaireBrut').value) * 12;
+    const nbParts = getNbParts(); // Calcul des parts fiscales
+    let taux = 0;
+    let revenuImposable = brutAnnuel * 0.9 / nbParts; // Estimation revenu imposable
+    // Calcul selon les tranches
+    for(let i = 0; i < TRANCHES_IMPOT.length; i++) {
+        if(revenuImposable > TRANCHES_IMPOT[i].min) {
+            const maxTranche = Math.min(revenuImposable, TRANCHES_IMPOT[i].max);
+            const montantTranche = maxTranche - TRANCHES_IMPOT[i].min;
+            taux += montantTranche * TRANCHES_IMPOT[i].taux / 100;
+        }
     }
-}
-
-chargerTranchesImpot(); // appel automatique
-
     const tauxMoyen = (taux * nbParts / brutAnnuel) * 100;
     document.getElementById('tauxImpot').value = tauxMoyen.toFixed(2);
     document.getElementById('helpImpot').innerHTML = `Estimé sur un brut annuel de ${brutAnnuel.toFixed(2)}€ (${nbParts} part${nbParts > 1 ? 's' : ''})`;
